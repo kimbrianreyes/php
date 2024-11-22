@@ -1,17 +1,26 @@
 <?php
-// Initialize error array
 $errors = array();
 
-// Only process if the form is submitted
+$servername = "localhost"; 
+$username = "root";       
+$password = "";           
+$dbname = "log_register"; 
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
 if (isset($_POST["submit"])) {
-    // Retrieve form data
     $LastName = $_POST["LastName"];
     $FirstName = $_POST["FirstName"];
     $email = $_POST["Email"];
     $password = $_POST["password"];
     $RepeatPassword = $_POST["repeat_password"];
 
-    // Validate fields
+    $passwordHush = password_hash($password, PASSWORD_DEFAULT);
+
     if (empty($LastName) || empty($FirstName) || empty($email) || empty($password) || empty($RepeatPassword)) {
         array_push($errors, "All fields are required");
     }
@@ -28,13 +37,27 @@ if (isset($_POST["submit"])) {
         array_push($errors, "Password does not match");
     }
 
-    // If there are errors, show them
     if (count($errors) == 0) {
-        // If no errors, proceed with registration (database insert, etc.)
-        // You can insert the data here
-        echo "<div class='alert alert-success'>Registration successful!</div>";
+        $sql = "INSERT INTO user (Last_Name, First_Name, email, password) VALUES (?, ?, ?, ?)";
+
+        if ($stmt = $conn->prepare($sql)) {
+            $stmt->bind_param("ssss", $LastName, $FirstName, $email, $passwordHush);
+            
+            if ($stmt->execute()) {
+                echo "<div class='alert alert-success'>Registration successful!</div>";
+            } else {
+                echo "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
+            }
+
+            $stmt->close();
+        } else {
+            echo "<div class='alert alert-danger'>Error: " . $conn->error . "</div>";
+        }
     }
 }
+
+// Close the connection
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -49,7 +72,6 @@ if (isset($_POST["submit"])) {
 <body>
     <div class="container">
         <?php
-        // If there are any errors, display them
         if (count($errors) > 0) {
             foreach ($errors as $error) {
                 echo "<div class='alert alert-danger'>$error</div>";
