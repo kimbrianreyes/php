@@ -1,8 +1,8 @@
 <?php
-$host = "localhost";
+$host = "localhost:3307";
 $username = "root";
 $password = "";
-$database = "pangalan ng database mo";
+$database = "pangalan ng database mo sa hood";
 
 $conn = mysqli_connect($host, $username, $password, $database);
 
